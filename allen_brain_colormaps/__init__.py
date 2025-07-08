@@ -187,7 +187,7 @@ supertype_to_color = {
 
 class AllenBrainColormaps:
     """
-    MTG (Middle Temporal Gyrus) cell type colormaps for neuroscience visualization.
+    Allen Brain Atlas cell type colormaps for neuroscience visualization.
     
     Provides consistent colors for cell type hierarchies: class, subclass, and supertype levels.
     Compatible with matplotlib and seaborn plotting functions.
@@ -200,9 +200,9 @@ class AllenBrainColormaps:
     def _register_colormaps(self):
         """Register all colormaps with matplotlib."""
         # Register discrete colormaps
-        self.register_discrete_cmap('mtg_class', list(class_to_color.values()))
-        self.register_discrete_cmap('mtg_subclass', list(subclass_to_color.values()))
-        self.register_discrete_cmap('mtg_supertype', list(supertype_to_color.values()))
+        self.register_discrete_cmap('allen_brain_class', list(class_to_color.values()))
+        self.register_discrete_cmap('allen_brain_subclass', list(subclass_to_color.values()))
+        self.register_discrete_cmap('allen_brain_supertype', list(supertype_to_color.values()))
     
     @staticmethod
     def register_discrete_cmap(name, colors):
@@ -280,9 +280,9 @@ class AllenBrainColormaps:
             Colormap object for use with matplotlib/seaborn
         """
         cmap_names = {
-            'class': 'mtg_class',
-            'subclass': 'mtg_subclass', 
-            'supertype': 'mtg_supertype'
+            'class': 'allen_brain_class',
+            'subclass': 'allen_brain_subclass', 
+            'supertype': 'allen_brain_supertype'
         }
         
         if level not in cmap_names:
@@ -323,7 +323,7 @@ class AllenBrainColormaps:
         ax.set_yticks(y_pos)
         ax.set_yticklabels(labels)
         ax.set_xlabel('Color')
-        ax.set_title(f'MTG {level.title()} Color Palette')
+        ax.set_title(f'Allen Brain {level.title()} Color Palette')
         ax.set_xlim(0, 1)
         
         # Add hex color codes
@@ -345,9 +345,9 @@ class AllenBrainColormaps:
 
 
 # Convenience functions for direct access
-def get_mtg_colors(level='subclass', cell_types=None):
+def get_brain_colors(level='subclass', cell_types=None):
     """
-    Get MTG cell type colors.
+    Get brain cell type colors.
     
     Parameters
     ----------
@@ -361,21 +361,21 @@ def get_mtg_colors(level='subclass', cell_types=None):
     dict
         Mapping of cell types to hex colors
     """
-    mtg = MTGColormaps()
+    brain = AllenBrainColormaps()
     
     if level == 'class':
-        return mtg.get_class_colors(cell_types)
+        return brain.get_class_colors(cell_types)
     elif level == 'subclass':
-        return mtg.get_subclass_colors(cell_types)
+        return brain.get_subclass_colors(cell_types)
     elif level == 'supertype':
-        return mtg.get_supertype_colors(cell_types)
+        return brain.get_supertype_colors(cell_types)
     else:
         raise ValueError("Level must be 'class', 'subclass', or 'supertype'")
 
 
-def get_mtg_cmap(level='subclass'):
+def get_brain_cmap(level='subclass'):
     """
-    Get MTG colormap for matplotlib/seaborn.
+    Get brain colormap for matplotlib/seaborn.
     
     Parameters
     ----------
@@ -387,13 +387,13 @@ def get_mtg_cmap(level='subclass'):
     matplotlib.colors.ListedColormap
         Colormap for plotting
     """
-    mtg = MTGColormaps()
-    return mtg.get_cmap(level)
+    brain = AllenBrainColormaps()
+    return brain.get_cmap(level)
 
 
-def plot_mtg_palette(level='subclass', figsize=(12, 8)):
+def plot_brain_palette(level='subclass', figsize=(12, 8)):
     """
-    Plot MTG color palette.
+    Plot brain color palette.
     
     Parameters
     ----------
@@ -407,19 +407,19 @@ def plot_mtg_palette(level='subclass', figsize=(12, 8)):
     tuple
         (figure, axis) objects
     """
-    mtg = AllenBrainColormaps()    
-    return mtg.plot_palette(level, figsize)
+    brain = AllenBrainColormaps()    
+    return brain.plot_palette(level, figsize)
 
 
 # Initialize colormaps when module is imported
-_mtg_instance = AllenBrainColormaps()
+_brain_instance = AllenBrainColormaps()
 
 # Make color dictionaries available at module level
 __all__ = [
-    'MTGColormaps',
-    'get_mtg_colors', 
-    'get_mtg_cmap',
-    'plot_mtg_palette',
+    'AllenBrainColormaps',
+    'get_brain_colors', 
+    'get_brain_cmap',
+    'plot_brain_palette',
     'class_to_color',
     'subclass_to_color', 
     'supertype_to_color'
