@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "allen-brain-colormaps"
-version = "0.1.0"
+version = "0.1.2"
 authors = [
     {name = "Matthias Flotho", email = "matthias.flotho@ccb.uni-saarland.de "},
 ]

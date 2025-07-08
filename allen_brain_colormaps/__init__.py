@@ -1,6 +1,6 @@
 """
-MTG Cell Type Colormaps
-A Python package providing matplotlib and seaborn compatible colormaps for Middle Temporal Gyrus (MTG) cell types.
+Allen Brain Atlas Cell Type Colormaps
+A Python package providing matplotlib and seaborn compatible colormaps for human brain cell types.
 """
 
 import matplotlib.pyplot as plt
@@ -194,21 +194,74 @@ class AllenBrainColormaps:
     """
     
     def __init__(self):
-        """Initialize MTG colormaps."""
+        """Initialize Allen Brain colormaps."""
+        self._colormaps_registered = False
         self._register_colormaps()
     
     def _register_colormaps(self):
         """Register all colormaps with matplotlib."""
-        # Register discrete colormaps
-        self.register_discrete_cmap('allen_brain_class', list(class_to_color.values()))
-        self.register_discrete_cmap('allen_brain_subclass', list(subclass_to_color.values()))
-        self.register_discrete_cmap('allen_brain_supertype', list(supertype_to_color.values()))
+        if self._colormaps_registered:
+            return
+            
+        try:
+            # Register discrete colormaps
+            self.register_discrete_cmap('allen_brain_class', list(class_to_color.values()))
+            self.register_discrete_cmap('allen_brain_subclass', list(subclass_to_color.values()))
+            self.register_discrete_cmap('allen_brain_supertype', list(supertype_to_color.values()))
+            self._colormaps_registered = True
+        except Exception as e:
+            # If registration fails, continue without registered colormaps
+            print(f"Warning: Could not register colormaps with matplotlib: {e}")
     
     @staticmethod
     def register_discrete_cmap(name, colors):
         """Register a discrete colormap with matplotlib."""
         cmap = ListedColormap(colors, name=name)
-        plt.cm.register_cmap(cmap=cmap)
+        
+        # Handle different matplotlib versions more robustly
+        import matplotlib as mpl
+        
+        # Try different registration methods based on matplotlib version
+        registered = False
+        
+        # Method 1: matplotlib >= 3.6.0 (preferred)
+        if not registered:
+            try:
+                if hasattr(mpl, 'colormaps') and hasattr(mpl.colormaps, 'register'):
+                    mpl.colormaps.register(cmap, name=name)
+                    registered = True
+            except Exception:
+                pass
+        
+        # Method 2: matplotlib 3.5.x and some 3.6.x
+        if not registered:
+            try:
+                if hasattr(mpl.cm, 'register_cmap'):
+                    mpl.cm.register_cmap(name=name, cmap=cmap)
+                    registered = True
+            except Exception:
+                pass
+        
+        # Method 3: Older matplotlib versions
+        if not registered:
+            try:
+                if hasattr(plt, 'register_cmap'):
+                    plt.register_cmap(name=name, cmap=cmap)
+                    registered = True
+            except Exception:
+                pass
+        
+        # Method 4: Very old matplotlib versions  
+        if not registered:
+            try:
+                mpl.cm._cmap_registry[name] = cmap
+                registered = True
+            except Exception:
+                pass
+        
+        if not registered:
+            raise RuntimeError(f"Could not register colormap '{name}' with any known matplotlib method")
+        
         return cmap
     
     def get_class_colors(self, cell_types=None):
@@ -222,8 +275,8 @@ class AllenBrainColormaps:
             
         Returns
         -------
-        dict or list
-            Dictionary mapping cell types to colors, or list of colors if cell_types is None.
+        dict
+            Dictionary mapping cell types to colors.
         """
         if cell_types is None:
             return class_to_color.copy()
@@ -240,8 +293,8 @@ class AllenBrainColormaps:
             
         Returns
         -------
-        dict or list
-            Dictionary mapping cell types to colors, or list of colors if cell_types is None.
+        dict
+            Dictionary mapping cell types to colors.
         """
         if cell_types is None:
             return subclass_to_color.copy()
@@ -258,8 +311,8 @@ class AllenBrainColormaps:
             
         Returns
         -------
-        dict or list
-            Dictionary mapping cell types to colors, or list of colors if cell_types is None.
+        dict
+            Dictionary mapping cell types to colors.
         """
         if cell_types is None:
             return supertype_to_color.copy()
@@ -279,16 +332,18 @@ class AllenBrainColormaps:
         matplotlib.colors.ListedColormap
             Colormap object for use with matplotlib/seaborn
         """
-        cmap_names = {
-            'class': 'allen_brain_class',
-            'subclass': 'allen_brain_subclass', 
-            'supertype': 'allen_brain_supertype'
+        color_maps = {
+            'class': class_to_color,
+            'subclass': subclass_to_color,
+            'supertype': supertype_to_color
         }
         
-        if level not in cmap_names:
-            raise ValueError(f"Level must be one of {list(cmap_names.keys())}")
-            
-        return plt.cm.get_cmap(cmap_names[level])
+        if level not in color_maps:
+            raise ValueError(f"Level must be one of {list(color_maps.keys())}")
+        
+        # Return a fresh colormap instead of relying on registration
+        colors = list(color_maps[level].values())
+        return ListedColormap(colors, name=f'allen_brain_{level}')
     
     def plot_palette(self, level='subclass', figsize=(12, 8)):
         """
@@ -361,14 +416,18 @@ def get_brain_colors(level='subclass', cell_types=None):
     dict
         Mapping of cell types to hex colors
     """
-    brain = AllenBrainColormaps()
-    
     if level == 'class':
-        return brain.get_class_colors(cell_types)
+        if cell_types is None:
+            return class_to_color.copy()
+        return {ct: class_to_color.get(ct, '#000000') for ct in cell_types}
     elif level == 'subclass':
-        return brain.get_subclass_colors(cell_types)
+        if cell_types is None:
+            return subclass_to_color.copy()
+        return {ct: subclass_to_color.get(ct, '#000000') for ct in cell_types}
     elif level == 'supertype':
-        return brain.get_supertype_colors(cell_types)
+        if cell_types is None:
+            return supertype_to_color.copy()
+        return {ct: supertype_to_color.get(ct, '#000000') for ct in cell_types}
     else:
         raise ValueError("Level must be 'class', 'subclass', or 'supertype'")
 
@@ -387,8 +446,17 @@ def get_brain_cmap(level='subclass'):
     matplotlib.colors.ListedColormap
         Colormap for plotting
     """
-    brain = AllenBrainColormaps()
-    return brain.get_cmap(level)
+    color_maps = {
+        'class': class_to_color,
+        'subclass': subclass_to_color,
+        'supertype': supertype_to_color
+    }
+    
+    if level not in color_maps:
+        raise ValueError(f"Level must be one of {list(color_maps.keys())}")
+    
+    colors = list(color_maps[level].values())
+    return ListedColormap(colors, name=f'allen_brain_{level}')
 
 
 def plot_brain_palette(level='subclass', figsize=(12, 8)):
@@ -411,8 +479,32 @@ def plot_brain_palette(level='subclass', figsize=(12, 8)):
     return brain.plot_palette(level, figsize)
 
 
-# Initialize colormaps when module is imported
-_brain_instance = AllenBrainColormaps()
+# Entry point functions for matplotlib colormap registration
+def get_brain_cmap_class():
+    """Entry point for matplotlib class colormap."""
+    return ListedColormap(list(class_to_color.values()), name='allen_brain_class')
+
+def get_brain_cmap_subclass():
+    """Entry point for matplotlib subclass colormap."""
+    return ListedColormap(list(subclass_to_color.values()), name='allen_brain_subclass')
+
+def get_brain_cmap_supertype():
+    """Entry point for matplotlib supertype colormap."""
+    return ListedColormap(list(supertype_to_color.values()), name='allen_brain_supertype')
+
+
+# Delayed initialization to avoid import errors
+def _initialize_colormaps():
+    """Initialize colormaps safely."""
+    try:
+        _brain_instance = AllenBrainColormaps()
+        return _brain_instance
+    except Exception:
+        # If initialization fails, continue without instance
+        return None
+
+# Try to initialize, but don't fail if it doesn't work
+_brain_instance = _initialize_colormaps()
 
 # Make color dictionaries available at module level
 __all__ = [
@@ -422,5 +514,8 @@ __all__ = [
     'plot_brain_palette',
     'class_to_color',
     'subclass_to_color', 
-    'supertype_to_color'
+    'supertype_to_color',
+    'get_brain_cmap_class',
+    'get_brain_cmap_subclass', 
+    'get_brain_cmap_supertype'
 ]

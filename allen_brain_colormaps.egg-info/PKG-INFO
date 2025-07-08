@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: allen-brain-colormaps
-Version: 0.1.0
+Version: 0.1.2
 Summary: Matplotlib and seaborn compatible colormaps for human brain cell types from the Allen Institute Brain Atlas
 Author-email: Matthias Flotho <matthias.flotho@ccb.uni-saarland.de>
 Maintainer-email: Matthias Flotho <matthias.flotho@ccb.uni-saarland.de>
