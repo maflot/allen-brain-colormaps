@@ -1,5 +1,11 @@
 # Allen Brain Atlas Colormaps
 
+> [!Note]
+> This repository is archived
+> Making colormaps more accessible will be continued at https://github.com/maflot/bio-crayon
+> This also contains the allen brain colormap, the package will remain on PiPy
+
+
 [![PyPI version](https://badge.fury.io/py/allen-brain-colormaps.svg)](https://badge.fury.io/py/allen-brain-colormaps)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
